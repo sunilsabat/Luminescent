@@ -15,13 +15,14 @@ public class ValidateApplication {
 
 	public static void main(String[] args) {
 	
-	
+//	launch browser
 		WebDriverManager.chromedriver().setup();
 		WebDriver driver = new ChromeDriver();
 		
 //		To Launch URL
 		driver.get("http://localhost:4200/");
 		driver.manage().timeouts().implicitlyWait(40, TimeUnit.SECONDS);
+		driver.manage().window().maximize();
 		
 //		To Count number of displayed cards
 		List<WebElement> cards = driver.findElements(By.xpath("//div[@class='image-container']"));
@@ -31,19 +32,19 @@ public class ValidateApplication {
 		Assert.assertEquals("Card count is not as per expected value "+expectedCardCount+" and actual count is "+actualCardCount, expectedCardCount, actualCardCount);
 		System.out.println("Card count expected value "+expectedCardCount+" and actual count is "+actualCardCount);
 		
-		String height = "";
 //		Same height check
+		String height = "";
+		String expectedHeight=driver.findElement(By.xpath("//div[@class='image-container']")).getCssValue("height");
 		for (WebElement webElement : cards) {
-			String expectedHeight="200px";
 			height = webElement.getCssValue("height");
 			Assert.assertEquals("Card height is not as per expected value "+expectedHeight+" and actual count is "+height, expectedHeight, height);
 		}
 		System.out.println("All Card height is "+ height );
 
-//	 	On click og image user must be redirected to new page
+//	 	On click of image user must be redirected to new page
 		driver.findElement(By.xpath("//div[@class='image-container']")).click();
 		
-		if(driver.findElement(By.xpath("//a[text()='Back']")).isDisplayed()) {
+		if(driver.findElement(By.xpath("//a[text()='Back']")).isDisplayed() && driver.getCurrentUrl().contains("/pictures/detail/")) {
 			System.out.println("user redirected successfully to pdp page by clicking card");
 		}else {
 			System.out.println("user failed to redirect to pdp page by clicking card");
@@ -52,7 +53,7 @@ public class ValidateApplication {
 
 //		Back button will redirect user back to gallery view
 		driver.findElement(By.xpath("//a[text()='Back']")).click();
-		if(driver.findElement(By.xpath("//div[@class='image-container']")).isDisplayed()) {
+		if(driver.getCurrentUrl().equalsIgnoreCase("http://localhost:4200/")) {
 			System.out.println("user redirected successfully to gallery page by clicking back button");
 		}else {
 			System.out.println("user failed to redirect to gallery page by clicking back button");
@@ -68,15 +69,18 @@ public class ValidateApplication {
 				,galleryNumAndName, DetailPageNumandName);
 		
 		
-//		Download link should display only if height is Atleast 2000px
+//		Download link should display only if height and width is Atleast 2000px
 		int heightPDP=Integer.parseInt(driver.findElement(By.xpath("//div[@class='image-container']")).getCssValue("height").replace("px", "").trim());
-		 if(heightPDP>2000 && driver.findElement(By.xpath("//span[@class='button download']")).isDisplayed() )
-		 {
-			 System.out.println("Download is visble only if height is greater than 2000px");
-		 }else {
-			 System.out.println("Download is visble even if height is less than 2000px");
-			 Assert.fail("Download is visble even if height is less than 2000px");
+		int widthPDP=Integer.parseInt(driver.findElement(By.xpath("//div[@class='image-container']")).getCssValue("width").replace("px", "").trim());
+		
+		 if(heightPDP>2000 && widthPDP>2000 && driver.findElement(By.xpath("//span[@class='button download']")).isDisplayed() ){
+			 System.out.println("Download is visble only if height and width is greater than 2000px");
+		 }else if (heightPDP<2000 && widthPDP<2000 && driver.findElement(By.xpath("//span[@class='button download']")).isDisplayed() ) {
+			 System.out.println("Download is still visble as height and width is less than 2000px");
+			 Assert.fail("Download is still visble as height and width is less than 2000px");
 		 }
+		 
+		 
 		driver.close();
 	}
 
